@@ -171,7 +171,6 @@ function getNewAccessToken(){
 }
 
 function checkTokenValidity(token){
-  process.env.LOCK = 1;
   var searchString = "prova";
   const clientreq = https.request({
     method: 'GET',
@@ -195,7 +194,7 @@ function checkTokenValidity(token){
 function sendRequestToPlatform(chatId, text, actionToDo, token){
   var requestBody;
   var host = "piattaformacontenutimusicali.herokuapp.com";
-  
+  sendText(chatId, "Ora invio la richiesta");
   if(actionToDo == 1){
     var searchString = text;
     searchString = searchString.replace(/\s/g,"+");
