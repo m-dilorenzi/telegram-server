@@ -2,9 +2,9 @@
   "name": "bot-test",
   "version": "0.0.1",
   "description": "Un semplice bot Telegram.",
-  "main": "server-telegram.js",
+  "main": "telegram-server.js",
   "scripts": {
-    "start": "node server-telegram.js"
+    "start": "node telegram-server.js"
   },
   "dependencies": {
     "express": "^4.16.4",
