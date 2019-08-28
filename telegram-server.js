@@ -21,8 +21,6 @@ app.post('/telegram', (req, res) => {
   
   process.env.COMMAND_OR_INPUT = 1;
   
-  sendText(chatid, "Messaggio ricevuto");
-  
   if(text == "/start"){
     sendText(chatid, "Benvenuto nel bot. Digita il comando /help per visualizzare i possibili comandi che il bot mette a disposizione.");
     process.env.COMMAND_OR_INPUT = 0;
@@ -196,7 +194,6 @@ function checkTokenValidity(token){
 function sendRequestToPlatform(chatId, text, actionToDo, token){
   var requestBody;
   var host = "piattaformacontenutimusicali.herokuapp.com";
-  sendText(chatId, "Ora invio la richiesta");
   if(actionToDo == 1){
     var searchString = text;
     searchString = searchString.replace(/\s/g,"+");
