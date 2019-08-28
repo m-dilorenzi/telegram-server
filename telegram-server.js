@@ -194,7 +194,7 @@ function checkTokenValidity(token){
 
 function sendRequestToPlatform(chatId, text, actionToDo, token){
   var requestBody;
-  var host = "https://piattaformacontenutimusicali.herokuapp.com/";
+  var host = "piattaformacontenutimusicali.herokuapp.com";
   
   if(actionToDo == 1){
     var searchString = text;
