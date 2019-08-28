@@ -21,6 +21,8 @@ app.post('/telegram', (req, res) => {
   
   process.env.COMMAND_OR_INPUT = 1;
   
+  sendText(chatid, "Messaggio ricevuto");
+  
   if(text == "/start"){
     sendText(chatid, "Benvenuto nel bot. Digita il comando /help per visualizzare i possibili comandi che il bot mette a disposizione.");
     process.env.COMMAND_OR_INPUT = 0;
