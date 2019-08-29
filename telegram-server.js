@@ -192,51 +192,35 @@ function checkTokenValidity(token){
 }
 
 function sendRequestToPlatform(chatId, text, actionToDo, token){
-  var requestBody;
+  
   var host = "piattaformacontenutimusicali.herokuapp.com";
   
   if(actionToDo == 1){
     var searchString = text;
     searchString = searchString.replace(/\s/g,"+");
-    var path = "/searchiTunesSong";
-    requestBody = {
-	      text: searchString,
-    }
+    var path = "/searchiTunesSong/"+searchString;
   }
   if(actionToDo == 2){
     var searchString = text;
     searchString = searchString.replace(/\s/g,"+");
-    var path = "/searchiTunesArtist";
-    requestBody = { 
-	      text: searchString,
-    }
+    var path = "/searchiTunesArtist/"+searchString;
   }
   if(actionToDo == 3){
     var searchString = text;
     searchString = searchString.replace(/\s/g,"+");
-    var path = "/searchYoutubeVideos";
-    requestBody = { 
-	      text: searchString,
-    }
+    var path = "/searchYoutubeVideos/"+searchString;
   }
   if(actionToDo == 4){
     var searchString = text;
     searchString = searchString.replace(/\s/g,"+");
-    var path = "/searchSongOnSpotify";
-    requestBody = { 
-	      text: searchString,
-        token: token
-    }
+    var path = "/searchSongOnSpotify/"+searchString+"/"+token;
   }
   if(actionToDo == 5){
     var path = "/help";
-    requestBody = { 
-	      text: "comando /help"
-    }
   }
   
   const clientreq = https.request({
-    method: 'POST',
+    method: 'GET',
     host: host,
     path: path,
     headers: {
@@ -319,7 +303,6 @@ function sendRequestToPlatform(chatId, text, actionToDo, token){
       
     });
     
-  });
-  clientreq.write(JSON.stringify(requestBody));	
+  });	
   clientreq.end(); // questa chiamata esegue la richiesta
 }
