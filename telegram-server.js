@@ -31,19 +31,19 @@ app.post('/telegram', (req, res) => {
     sendText(chatid, "Digita i termini con cui eseguire la ricerca");
     process.env.COMMAND_OR_INPUT = 0;
     process.env.ACTION_TO_DO = 1;
-    checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
+    //checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
   }
   if(text == "/getartistpagebyname"){
     sendText(chatid, "Digita il nome dell'autore");
     process.env.COMMAND_OR_INPUT = 0;
     process.env.ACTION_TO_DO = 2;
-    checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
+    //checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
   }
   if(text == "/searchyoutubevideos"){
     sendText(chatid, "Digita i termini della ricerca");
     process.env.COMMAND_OR_INPUT = 0;
     process.env.ACTION_TO_DO = 3;
-    checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
+    //checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
   }
   if(text == "/searchsongonspotify"){
     if(clientid == process.env.ADMIN_ID){
@@ -60,7 +60,7 @@ app.post('/telegram', (req, res) => {
   if(text == "/help"){
     process.env.ACTION_TO_DO = 5;
     process.env.COMMAND_OR_INPUT = 1;
-    checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
+    //checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
   }
   
   if(process.env.COMMAND_OR_INPUT == 1){
@@ -193,7 +193,8 @@ function checkTokenValidity(token){
 
 function sendRequestToPlatform(chatId, text, actionToDo, token){
   var requestBody;
-  var host = "piattaformacontenutimusicali.herokuapp.com";
+  var host = "piattaforma-contenuti-musicali.glitch.me";
+  
   if(actionToDo == 1){
     var searchString = text;
     searchString = searchString.replace(/\s/g,"+");
@@ -251,9 +252,70 @@ function sendRequestToPlatform(chatId, text, actionToDo, token){
         body += d;
     });
     resp.on('end', function() {
-      const j = JSON.parse(body);
       
-      sendText(chatId, j);
+      const j = JSON.parse(body);
+      //console.log(j);
+      
+      var string = '';
+      if(actionToDo == 1){
+        if(j.resultCount == 0)
+          string += "Nessun risultato disponibile";
+        else{
+          string += "Lista canzoni\n"
+          for(var i=0; i < j.resultCount; i++){
+            string += "\nTitolo: " + j.results[i].trackName;
+            string += "\nAlbum:  " + j.results[i].collectionName;
+            string += "\nAutore: " + j.results[i].artistName;
+            string += "\nPrezzo: " + j.results[i].trackPrice+ "€";
+		        string += "\nLink:   " + j.results[i].trackViewUrl;
+            string += "\n";
+          }
+        }
+        sendText(chatId, string);
+      }
+      
+      if(actionToDo == 2){
+        if(j.resultCount == 0)
+          string += "Nessun risultato disponibile";
+        else{
+          string += "Lista artisti\n";
+          for(var i=0; i < j.resultCount; i++){
+            string += "\nNome: " + j.results[i].artistName;
+            string += "\nLink pagina iTunes: "+j.results[i].artistLinkUrl;
+            string += "\n";
+          }
+        }
+        sendText(chatId, string);
+      }
+      
+      if(actionToDo == 3){
+        if(j.pageInfo.totalResults == 0)
+          string += "Nessun risultato disponibile.";
+        else{
+          string += "Lista video\n";
+          for(var i=0; i < 5; i++){
+            string += "\n"+(i+1)+". Titolo: "+ j.items[i].snippet.title;
+            string += "\n     Link: www.youtube.com/watch?v=" + j.items[i].id +" \n\n"
+          }
+        }
+        sendText(chatId, string);
+      }
+      if(actionToDo == 4){
+        string += "Lista canzoni\n"
+        for(var i=0; i<j.tracks.limit && i<j.tracks.total;i++){
+          string += "\n"+(i+1)+". Titolo: "+j.tracks.items[i].name;
+          string += "\n     Autore: "+j.tracks.items[i].artists[0].name;
+          string += "\n     Link: "+j.tracks.items[i].external_urls.spotify;
+        }
+        if(string=="Lista canzoni\n")
+          string="Nessun risultato disponibile.";
+        
+        sendText(chatId, string);
+      }
+      
+      if(actionToDo == 5){
+        sendText(chatId, j.text);
+      }
       
     });
     
