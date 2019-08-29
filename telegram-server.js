@@ -193,7 +193,7 @@ function checkTokenValidity(token){
 
 function sendRequestToPlatform(chatId, text, actionToDo, token){
   var requestBody;
-  var host = "piattaforma-contenuti-musicali.glitch.me";
+  var host = "piattaformacontenutimusicali.herokuapp.com";
   
   if(actionToDo == 1){
     var searchString = text;
