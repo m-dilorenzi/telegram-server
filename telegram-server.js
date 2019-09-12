@@ -10,8 +10,68 @@ app.use(bodyparser.json());
 // Includiamo il modulo "request" per effettuare richieste HTTP
 const https = require('https');
 
+var usersArray=[{
+  user_chatid: "449963751",
+  chat_status: 0,
+  action_to_do: 0
+}];
+
+function printAllUsers(){
+  console.log("Numero utenti: "+usersArray.length+"\n");
+  for(var i=0; i < usersArray.length;i++){
+    console.log("user_chatid: "+usersArray[i].user_chatid);
+    console.log("chat_status: "+usersArray[i].chat_status);
+    console.log("action_to_do: "+usersArray[i].action_to_do);
+    console.log("\n");
+  }
+}
+
+function addNewUser(chatid){
+  var exist=0;
+  for(var i=0; i < usersArray.length; i++){
+    if(usersArray[i].user_chatid == chatid){
+      exist = 1;
+    }
+  }
+  if(exist==1){
+     console.log("Utente già registrato.");
+  }else{
+    usersArray.push({
+      user_chatid: chatid,
+      chat_status: 0,
+      action_to_do: 0
+    });
+    console.log("Nuovo utente aggiunto.");
+  }
+}
+
+function alterChatStatus(chatid, chatStatus){
+  for(var i=0; i < usersArray.length; i++){
+    if(usersArray[i].user_chatid == chatid){
+      usersArray[i].chat_status = chatStatus;
+    }
+  }
+}
+
+function alterActionToDo(chatid, actionToDo){
+  for(var i=0; i < usersArray.length; i++){
+    if(usersArray[i].user_chatid == chatid){
+      usersArray[i].action_to_do = actionToDo;
+    }
+  }
+}
+
+function getUser(chatid){
+  for(var i=0; i < usersArray.length; i++){
+    if(usersArray[i].user_chatid == chatid){
+      return usersArray[i];
+    }
+  }
+}
+
 // Webhook per Telegram
 app.post('/telegram', (req, res) => {
+  
 	console.log("Richiesta: " + JSON.stringify(req.body));
 	const chatid = req.body.message.chat.id;
   const text = req.body.message.text;
@@ -19,80 +79,82 @@ app.post('/telegram', (req, res) => {
 	
 	console.log("Utente in chat " + chatid + " ha scritto '" + text + "'");
   
-  process.env.COMMAND_OR_INPUT = 1;
+  addNewUser(chatid);
+  alterChatStatus(chatid, 1);
   
   if(text == "/start"){
     sendText(chatid, "Benvenuto nel bot. Digita il comando /help per visualizzare i possibili comandi che il bot mette a disposizione.");
-    process.env.COMMAND_OR_INPUT = 0;
-    process.env.ACTION_TO_DO = 0;
-    checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
+    alterChatStatus(chatid, 0);
   }
   if(text == "/searchsongbyparameter"){
     sendText(chatid, "Digita i termini con cui eseguire la ricerca");
-    process.env.COMMAND_OR_INPUT = 0;
-    process.env.ACTION_TO_DO = 1;
+    alterChatStatus(chatid, 0);
+    alterActionToDo(chatid, 1);
     //checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
   }
   if(text == "/getartistpagebyname"){
     sendText(chatid, "Digita il nome dell'autore");
-    process.env.COMMAND_OR_INPUT = 0;
-    process.env.ACTION_TO_DO = 2;
+    alterChatStatus(chatid, 0);
+    alterActionToDo(chatid, 2);
     //checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
   }
   if(text == "/searchyoutubevideos"){
     sendText(chatid, "Digita i termini della ricerca");
-    process.env.COMMAND_OR_INPUT = 0;
-    process.env.ACTION_TO_DO = 3;
+    alterChatStatus(chatid, 0);
+    alterActionToDo(chatid, 3);
     //checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
   }
   if(text == "/searchsongonspotify"){
     if(clientid == process.env.ADMIN_ID){
       sendText(chatid, "Digita i termini della ricerca");
-      process.env.COMMAND_OR_INPUT = 0;
-      process.env.ACTION_TO_DO = 4;
+      alterChatStatus(chatid, 0);
+      alterActionToDo(chatid, 4);
       checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
     }else{
       sendText(chatid, "Funzione riservata all'utente admin.");
-      process.env.COMMAND_OR_INPUT = 0;
-      process.env.ACTION_TO_DO = 0;
+      alterChatStatus(chatid, 0);
+      alterActionToDo(chatid, 0);
     }
   }
   if(text == "/help"){
-    process.env.ACTION_TO_DO = 5;
-    process.env.COMMAND_OR_INPUT = 1;
     //checkTokenValidity(process.env.SPOTIFY_ACCESS_TOKEN);
+    alterChatStatus(chatid, 1);
+    alterActionToDo(chatid, 5);
   }
   
-  if(process.env.COMMAND_OR_INPUT == 1){
-    if((process.env.ACTION_TO_DO == 1) || 
-       (process.env.ACTION_TO_DO == 2) ||
-       (process.env.ACTION_TO_DO == 3) ||
-       (process.env.ACTION_TO_DO == 4) ||
-       (process.env.ACTION_TO_DO == 5)){
-      if(process.env.ACTION_TO_DO == 1){
+  var user = getUser(chatid);
+  console.log(user);
+  
+  if(user.chat_status == 1){
+    if((user.action_to_do == 1) || 
+       (user.action_to_do == 2) ||
+       (user.action_to_do == 3) ||
+       (user.action_to_do == 4) ||
+       (user.action_to_do == 5)){
+      if(user.action_to_do == 1){
         console.log("Eseguirò la richiesta getMusicByParameter con termini di ricerca '"+text+"'");
-        sendRequestToPlatform(chatid, text, process.env.ACTION_TO_DO, process.env.SPOTIFY_ACCESS_TOKEN);
-        process.env.ACTION_TO_DO = 0;
+        sendRequestToPlatform(chatid, text, user.action_to_do, process.env.SPOTIFY_ACCESS_TOKEN);
+        alterActionToDo(chatid, 0);
       }
-      if(process.env.ACTION_TO_DO == 2){
+      if(user.action_to_do == 2){
         console.log("Eseguirò la richiesta getArtistPageByName con termini di ricerca '"+text+"'");
-        sendRequestToPlatform(chatid, text, process.env.ACTION_TO_DO, process.env.SPOTIFY_ACCESS_TOKEN);
-        process.env.ACTION_TO_DO = 0;
+        sendRequestToPlatform(chatid, text, user.action_to_do, process.env.SPOTIFY_ACCESS_TOKEN);
+        alterActionToDo(chatid, 0);
       }
-      if(process.env.ACTION_TO_DO == 3){
+      if(user.action_to_do == 3){
         console.log("Eseguirò la richiesta searchYoutubeVideos con termini di ricerca '"+text+"'");
-        sendRequestToPlatform(chatid, text, process.env.ACTION_TO_DO, process.env.SPOTIFY_ACCESS_TOKEN);
-        process.env.ACTION_TO_DO = 0;
+        sendRequestToPlatform(chatid, text, user.action_to_do, process.env.SPOTIFY_ACCESS_TOKEN);
+        alterActionToDo(chatid, 0);
       }
-      if(process.env.ACTION_TO_DO == 4){
+      if(user.action_to_do == 4){
         console.log("Eseguirò la richiesta searchSongOnSpotify con termini di ricerca '"+text+"'");
-        sendRequestToPlatform(chatid, text, process.env.ACTION_TO_DO, process.env.SPOTIFY_ACCESS_TOKEN);
-        process.env.ACTION_TO_DO = 0;
+        sendRequestToPlatform(chatid, text, user.action_to_do, process.env.SPOTIFY_ACCESS_TOKEN);
+        alterActionToDo(chatid, 0);
       }
-      if(process.env.ACTION_TO_DO == 5){
+      if(user.action_to_do == 5){
         console.log("Eseguirò la richiesta del comando di help");
-        sendRequestToPlatform(chatid, text, process.env.ACTION_TO_DO, process.env.SPOTIFY_ACCESS_TOKEN);
-        process.env.ACTION_TO_DO = 0;
+        sendRequestToPlatform(chatid, text, user.action_to_do, process.env.SPOTIFY_ACCESS_TOKEN);
+        alterActionToDo(chatid, 0);
       }
     }else{
       sendText(chatid, "Comando non disponibile.");
@@ -238,69 +300,29 @@ function sendRequestToPlatform(chatId, text, actionToDo, token){
     resp.on('end', function() {
       
       const j = JSON.parse(body);
-      //console.log(j);
+      console.log(j);
       
-      var string = '';
-      if(actionToDo == 1){
-        if(j.resultCount == 0)
-          string += "Nessun risultato disponibile";
-        else{
-          string += "Lista canzoni\n"
-          for(var i=0; i < j.resultCount; i++){
-            string += "\nTitolo: " + j.results[i].trackName;
-            string += "\nAlbum:  " + j.results[i].collectionName;
-            string += "\nAutore: " + j.results[i].artistName;
-            string += "\nPrezzo: " + j.results[i].trackPrice+ "€";
-		        string += "\nLink:   " + j.results[i].trackViewUrl;
-            string += "\n";
-          }
-        }
-        sendText(chatId, string);
-      }
-      
-      if(actionToDo == 2){
-        if(j.resultCount == 0)
-          string += "Nessun risultato disponibile";
-        else{
-          string += "Lista artisti\n";
-          for(var i=0; i < j.resultCount; i++){
-            string += "\nNome: " + j.results[i].artistName;
-            string += "\nLink pagina iTunes: "+j.results[i].artistLinkUrl;
-            string += "\n";
-          }
-        }
-        sendText(chatId, string);
-      }
-      
-      if(actionToDo == 3){
-        if(j.pageInfo.totalResults == 0)
-          string += "Nessun risultato disponibile.";
-        else{
-          string += "Lista video\n";
-          for(var i=0; i < 5; i++){
-            string += "\n"+(i+1)+". Titolo: "+ j.items[i].snippet.title;
-            string += "\n     Link: www.youtube.com/watch?v=" + j.items[i].id +" \n\n"
-          }
-        }
-        sendText(chatId, string);
-      }
-      if(actionToDo == 4){
-        string += "Lista canzoni\n"
-        for(var i=0; i<j.tracks.limit && i<j.tracks.total;i++){
-          string += "\n"+(i+1)+". Titolo: "+j.tracks.items[i].name;
-          string += "\n     Autore: "+j.tracks.items[i].artists[0].name;
-          string += "\n     Link: "+j.tracks.items[i].external_urls.spotify;
-        }
-        if(string=="Lista canzoni\n")
-          string="Nessun risultato disponibile.";
-        
-        sendText(chatId, string);
-      }
-      
-      if(actionToDo == 5){
+      var string='';
+      if(j.tipoRisultato == "text"){
         sendText(chatId, j.text);
+      }else{
+        if(j.risultatiTotali == 0){
+          sendText(chatId, "Nessun risultato disponibile.");
+        }else{
+          string+="Risultati";
+          for(var i=0; i<j.risultatiTotali; i++){
+            string+="\n\n● Nome: "+j.items[i].nome;
+            if(j.items[i].album != 0)
+              string+="\n   Album: "+j.items[i].album;
+            if(j.items[i].autore != 0)
+              string+="\n   Autore: "+j.items[i].autore;
+            if(j.items[i].prezzo != 0)
+              string+="\n   Prezzo: "+j.items[i].prezzo;
+            string+="\n   Link: "+j.items[i].link;
+          }
+        }
+        sendText(chatId, string);
       }
-      
     });
     
   });	
